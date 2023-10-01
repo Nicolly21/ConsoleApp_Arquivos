@@ -1,0 +1,8 @@
+Nome: João
+Idade: 25
+Escolaridade: Graduação
+
+Nome: Maria
+Idade: 22
+Escolaridade: Ensino Médio
+
