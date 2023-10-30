@@ -14,27 +14,30 @@ namespace MeuWebJob
     {
         static void Main(string[] args)
         {
-            var alunos = new List<Aluno>
-            {
-                new Aluno
-                {
-                    Nome = "João",
-                    Idade = "25",
-                    Escolaridade = "Graduação"
-                },
-                new Aluno
-                {
-                    Nome = "Maria",
-                    Idade = "22",
-                    Escolaridade = "Ensino Médio"
-                }
-            };
+            //var alunos = new List<Aluno>
+            //{
+            //    new Aluno
+            //    {
+            //        Nome = "João",
+            //        Idade = "25",
+            //        Escolaridade = "Graduação"
+            //    },
+            //    new Aluno
+            //    {
+            //        Nome = "Maria",
+            //        Idade = "22",
+            //        Escolaridade = "Ensino Médio"
+            //    }
+            //};
             //Testar usando csv
             #region Arquivo CSV
-            AdicionarAlunoAoCSV(ConfigurationManager.AppSettings["AlunosCSV"], alunos);
+
+            //AdicionarAlunoAoCSV(ConfigurationManager.AppSettings["AlunosCSV"], alunos);
 
             // Ler o arquivo CSV e obter os objetos Aluno
-            List<Aluno> alunosResp = LerAlunosDoCSV(ConfigurationManager.AppSettings["AlunosCSV"]);
+            //List<Aluno> alunosResp = LerAlunosDoCSV(ConfigurationManager.AppSettings["AlunosCSV"]);
+
+            RemoverAlunoDoCSV(ConfigurationManager.AppSettings["AlunosCSV"], "João");
             #endregion
 
             #region Arquivo TXT
@@ -110,6 +113,7 @@ namespace MeuWebJob
                 return null;
             }
         }
+        
         static void AdicionarAlunoAoCSV(string caminhoArquivo, List<Aluno> alunos)
         {
             bool arquivoVazio = !ArquivoCSVContemRegistros(caminhoArquivo);
@@ -118,7 +122,7 @@ namespace MeuWebJob
             {
                 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    HasHeaderRecord = true // Desabilita a gravação dos cabeçalhos
+                    HasHeaderRecord = true
                 };
 
                 using (var streamWriter = new StreamWriter(caminhoArquivo, true)) // O segundo parâmetro "true" permite a adição de novas linhas ao arquivo
@@ -164,6 +168,46 @@ namespace MeuWebJob
             using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)))
             {
                 return csv.GetRecords<Aluno>().ToList();
+            }
+        }
+
+        static void SobrescreverCSVComRegistros(string caminhoArquivo, List<Aluno> alunos)
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture);
+
+            using (var writer = new StreamWriter(caminhoArquivo))
+            using (var csv = new CsvWriter(writer, config))
+            {
+                csv.WriteRecords(alunos);
+            }
+        }
+
+        static void RemoverAlunoDoCSV(string caminhoArquivo, string nomeAlunoParaRemover)
+        {
+            try
+            {
+                // Ler o conteúdo atual do arquivo CSV
+                List<Aluno> alunos = LerAlunosDoCSV(caminhoArquivo);
+
+                // Encontrar o aluno a ser removido
+                Aluno alunoParaRemover = alunos.FirstOrDefault(a => a.Nome == nomeAlunoParaRemover);
+
+                // Se o aluno foi encontrado, removê-lo da lista
+                if (alunoParaRemover != null)
+                {
+                    alunos.Remove(alunoParaRemover);
+
+                    // Escrever a lista atualizada de registros de volta para o arquivo CSV
+                    SobrescreverCSVComRegistros(caminhoArquivo, alunos);
+                }
+                else
+                {
+                    Console.WriteLine($"O aluno {nomeAlunoParaRemover} não foi encontrado no arquivo CSV.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ocorreu um erro ao remover o aluno do arquivo CSV: {ex.Message}");
             }
         }
     }
